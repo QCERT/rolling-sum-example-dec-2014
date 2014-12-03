@@ -1,0 +1,31 @@
+# m-sized rolling window sum for number of times 
+# a client connected to a blacklisted domain
+
+name: domain-rolling-sum-toplogy
+
+workers: 2
+
+topology:
+
+    - spout:
+        name: pickLogSpout
+        module: domain-rolling-sum-topology.pick-log-spout
+    - bolt:
+        name: parseLogBolt
+        module: domain-rolling-sum-topology.parse-log-bolt
+        groupings:
+            - all_grouping: pickLogSpout
+    - bolt:
+            name: blackListedbolt
+            module: domain-rolling-sum-topology.black-list-bolt
+            groupings:
+                - fields_grouping: 
+                    component: parseLogBolt
+                    fields:
+                        - ip
+                        - domain
+    - bolt:
+            name: computeRSumbolt
+            module: domain-rolling-sum-topology.compute-rsum-bolt
+            groupings:
+                - global_grouping: blackListedbolt
